@@ -1,0 +1,215 @@
+package handler
+
+import (
+	"fmt"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/vishalpandhare01/portfolio_be/initializer"
+	"github.com/vishalpandhare01/portfolio_be/internal/model"
+	"github.com/vishalpandhare01/portfolio_be/internal/utils"
+	"golang.org/x/crypto/bcrypt"
+)
+
+// create user data
+func CreateUser(C *fiber.Ctx) error {
+	var body *model.UserModel
+	if err := C.BodyParser(&body); err != nil {
+		return C.Status(400).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	if err := initializer.DB.Where("role = ?", body.Role).First(&body).Error; err != nil {
+		return C.Status(500).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	if body.Role == "" {
+		return C.Status(400).JSON(fiber.Map{
+			"message": "Role required",
+		})
+	}
+
+	if body.Role == "admin" {
+		return C.Status(500).JSON(fiber.Map{
+			"message": "admin role already exist what are you doing bro 😒F",
+		})
+	}
+
+	if body.UserName == "" {
+		return C.Status(400).JSON(fiber.Map{
+			"message": "UserName required",
+		})
+	}
+
+	if body.Password == "" {
+		return C.Status(400).JSON(fiber.Map{
+			"message": "Password required",
+		})
+	}
+
+	if err := initializer.DB.Create(body).Error; err != nil {
+		return C.Status(500).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return C.Status(201).JSON(fiber.Map{
+		"message": "Success",
+		"data":    body,
+	})
+
+}
+
+type LoginBody struct {
+	UserName string
+	Password string
+}
+
+// loginuser
+func LoginUser(C *fiber.Ctx) error {
+	var body LoginBody
+	var data model.UserModel
+
+	if err := C.BodyParser(&body); err != nil {
+		return C.Status(500).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	if err := initializer.DB.Where("user_name = ?", body.UserName).First(&data).Error; err != nil {
+		if err.Error() == "record not found" {
+			return C.Status(404).JSON(fiber.Map{
+				"message": "user dose not exist create acount",
+			})
+		}
+		return C.Status(500).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(data.Password), []byte(body.Password)); err != nil {
+		return C.Status(400).JSON(fiber.Map{
+			"message": "password not match",
+		})
+	}
+
+	token, err := utils.GenerateJwtToken(data.ID, data.Role)
+	if err != nil {
+		return C.Status(400).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return C.Status(200).JSON(fiber.Map{
+		"message": "Success",
+		"data":    token,
+	})
+}
+
+// get all users
+func GetAllUsers(C *fiber.Ctx) error {
+	var data []model.UserModel
+	if err := initializer.DB.Find(&data).Error; err != nil {
+		return C.Status(500).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return C.Status(200).JSON(fiber.Map{
+		"message": "Success",
+		"data":    data,
+	})
+}
+
+// create user profile
+func CreateUserProfile(C *fiber.Ctx) error {
+	var body model.UserProfile
+	var checkExist model.UserProfile
+	id := C.Locals("userId")
+	if id == nil {
+		return C.Status(400).JSON(fiber.Map{
+			"message": "Login required",
+		})
+	}
+	body.UserID = fmt.Sprint(id)
+
+	if err := C.BodyParser(&body); err != nil {
+		return C.Status(400).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	if err := initializer.DB.Where("user_id = ?", body.UserID).First(&checkExist).Error; err != nil {
+		fmt.Println("error in check exist", err.Error())
+	}
+	fmt.Println("is here errror", id)
+
+	if checkExist.UserID == id {
+		return C.Status(400).JSON(fiber.Map{
+			"message": "profile already exist delete it and create new if any problem we cant afford edit feature",
+		})
+	}
+
+	if err := initializer.DB.Create(&body).Error; err != nil {
+		return C.Status(500).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return C.Status(201).JSON(fiber.Map{
+		"message": "Success",
+		"data":    body,
+	})
+
+}
+
+// get login user profile
+func GetUserProfileById(C *fiber.Ctx) error {
+	var data *model.UserProfile
+	id := C.Locals("userId")
+
+	if id == nil {
+		return C.Status(400).JSON(fiber.Map{
+			"message": "Login required",
+		})
+	}
+
+	fmt.Println("is here errror", id)
+	if err := initializer.DB.Where("user_id = ?", id).First(&data).Error; err != nil {
+		return C.Status(500).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return C.Status(200).JSON(fiber.Map{
+		"message": "Success",
+		"data":    data,
+	})
+
+}
+
+// delete user profile by id
+func DeleteUserProfileById(C *fiber.Ctx) error {
+	var data *model.UserProfile
+	id := C.Locals("userId")
+
+	if id == nil {
+		return C.Status(400).JSON(fiber.Map{
+			"message": "Login required",
+		})
+	}
+
+	if err := initializer.DB.Where("user_id = ?", id).Delete(&data).Error; err != nil {
+		return C.Status(500).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return C.Status(200).JSON(fiber.Map{
+		"message": "Success",
+		"data":    data,
+	})
+
+}
