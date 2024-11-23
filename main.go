@@ -23,5 +23,5 @@ func main() {
 	migration.SetUpMigration()
 	internal.SetUpRoutes(app)
 	fmt.Println("🚀 Server running on Port: ", port)
-	app.Listen(port)
+	app.Listen("0.0.0.0:" + port)
 }
