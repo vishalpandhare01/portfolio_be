@@ -18,8 +18,11 @@ func SetUpRoutes(app *fiber.App) {
 	app.Post("/login", handler.LoginUser)
 
 	app.Post("/userprofile", middleware.AuthMiddleware, handler.CreateUserProfile)
-	app.Get("/userprofile", middleware.AuthMiddleware, handler.GetUserProfileById)
+	app.Get("/userprofile/:userId", handler.GetUserProfileById)
 	app.Delete("/userprofile", middleware.AuthMiddleware, handler.DeleteUserProfileById)
-	//
+
+	app.Post("/addContact/:id", handler.CreateContact)
+	app.Get("/getContacts/", middleware.AuthMiddleware, handler.GetUserContacts)
+	app.Delete("/deleteContact/:id", middleware.AuthMiddleware, handler.DeleteUserContacts)
 
 }

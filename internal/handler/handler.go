@@ -19,12 +19,6 @@ func CreateUser(C *fiber.Ctx) error {
 		})
 	}
 
-	if err := initializer.DB.Where("role = ?", body.Role).First(&body).Error; err != nil {
-		return C.Status(500).JSON(fiber.Map{
-			"message": err.Error(),
-		})
-	}
-
 	if body.Role == "" {
 		return C.Status(400).JSON(fiber.Map{
 			"message": "Role required",
@@ -32,9 +26,11 @@ func CreateUser(C *fiber.Ctx) error {
 	}
 
 	if body.Role == "admin" {
-		return C.Status(500).JSON(fiber.Map{
-			"message": "admin role already exist what are you doing bro 😒F",
-		})
+		if err := initializer.DB.Where("role = ?", body.Role).First(&body).Error; err == nil {
+			return C.Status(400).JSON(fiber.Map{
+				"message": "admin role already exist what are you doing bro 😒F",
+			})
+		}
 	}
 
 	if body.UserName == "" {
@@ -168,13 +164,7 @@ func CreateUserProfile(C *fiber.Ctx) error {
 // get login user profile
 func GetUserProfileById(C *fiber.Ctx) error {
 	var data *model.UserProfile
-	id := C.Locals("userId")
-
-	if id == nil {
-		return C.Status(400).JSON(fiber.Map{
-			"message": "Login required",
-		})
-	}
+	id := C.Params("userId")
 
 	fmt.Println("is here errror", id)
 	if err := initializer.DB.Where("user_id = ?", id).First(&data).Error; err != nil {
@@ -202,6 +192,76 @@ func DeleteUserProfileById(C *fiber.Ctx) error {
 	}
 
 	if err := initializer.DB.Where("user_id = ?", id).Delete(&data).Error; err != nil {
+		return C.Status(500).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return C.Status(200).JSON(fiber.Map{
+		"message": "Success",
+		"data":    data,
+	})
+
+}
+
+// create contact
+func CreateContact(C *fiber.Ctx) error {
+	var body model.Contacts
+	id := C.Params("id")
+
+	body.UserID = fmt.Sprint(id)
+
+	if err := C.BodyParser(&body); err != nil {
+		return C.Status(400).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	if err := initializer.DB.Create(&body).Error; err != nil {
+		return C.Status(500).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return C.Status(201).JSON(fiber.Map{
+		"message": "Success",
+		"data":    body,
+	})
+
+}
+
+// get contact
+func GetUserContacts(C *fiber.Ctx) error {
+	var data *[]model.Contacts
+	id := C.Locals("userId")
+
+	fmt.Println("is here errror", id)
+	if err := initializer.DB.Where("user_id = ?", id).Find(&data).Error; err != nil {
+		return C.Status(500).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+
+	return C.Status(200).JSON(fiber.Map{
+		"message": "Success",
+		"data":    data,
+	})
+
+}
+
+// delete user contact
+func DeleteUserContacts(C *fiber.Ctx) error {
+	var data *model.Contacts
+	userId := C.Locals("userId")
+	id := C.Params("id")
+
+	if userId == nil {
+		return C.Status(400).JSON(fiber.Map{
+			"message": "Login required",
+		})
+	}
+
+	if err := initializer.DB.Where("user_id = ? and  id  =  ?", userId, id).Delete(&data).Error; err != nil {
 		return C.Status(500).JSON(fiber.Map{
 			"message": err.Error(),
 		})

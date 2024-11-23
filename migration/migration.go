@@ -9,7 +9,10 @@ import (
 )
 
 func SetUpMigration() {
-	err := initializer.DB.AutoMigrate(model.UserModel{}, model.UserProfile{})
+	err := initializer.DB.AutoMigrate(
+		model.UserModel{},
+		model.UserProfile{},
+		model.Contacts{})
 	if err != nil {
 		log.Fatal("Error in migration", err)
 	}

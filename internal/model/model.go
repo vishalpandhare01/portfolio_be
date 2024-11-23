@@ -26,7 +26,7 @@ type Contacts struct {
 	Email     string     `gorm:"type:varchar(36);not null"`
 	Message   string     `gorm:"type:text;not null"`
 	IpAdress  string     `gorm:"type:varchar(36);not null"`
-	Location  string     `gorm:"type:varchar(36);not null"`
+	Location  string     `gorm:"type:text;not null"`
 	User      *UserModel `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:SET NULL"`
 	CreatedAt time.Time  `gorm:"autoCreateTime" json:"createdAt,omitempty"`
 	UpdatedAt time.Time  `gorm:"autoUpdateTime" json:"updatedAt,omitempty"`
