@@ -20,10 +20,13 @@ func main() {
 		log.Fatal("Error in load env: ", err)
 	}
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:8000, http://localhost:3000",
+		AllowOrigins: "http://localhost:8000, http://localhost:3000 ,http://localhost:3001 ,http://localhost:3002",
 		AllowHeaders: "Origin, Content-Type, Accept , Token , Authorization",
 	}))
 	port := os.Getenv("PORT")
+	if port == "" {
+		port = ":8800"
+	}
 	initializer.ConnectDb()
 	migration.SetUpMigration()
 	internal.SetUpRoutes(app)
