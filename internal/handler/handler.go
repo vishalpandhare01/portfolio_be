@@ -226,6 +226,24 @@ func GetUserProfileByUserName(C *fiber.Ctx) error {
 
 }
 
+func GetLogInUserProfile(C *fiber.Ctx) error {
+	var data *model.UserModel
+	id := C.Locals("userId")
+
+	// Use Select to limit the columns retrieved
+	if err := initializer.DB.Select("id, user_name, role").Where("id = ?", id).First(&data).Error; err != nil {
+		return C.Status(500).JSON(fiber.Map{
+			"message": "User: " + err.Error(),
+		})
+	}
+
+	// Return the selected data
+	return C.Status(200).JSON(fiber.Map{
+		"message": "Success",
+		"data":    data,
+	})
+}
+
 // delete user profile by id
 func DeleteUserProfileById(C *fiber.Ctx) error {
 	var data *model.UserProfile
