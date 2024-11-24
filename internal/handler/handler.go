@@ -13,6 +13,7 @@ import (
 // create user data
 func CreateUser(C *fiber.Ctx) error {
 	var body *model.UserModel
+	var userNameExist *model.UserModel
 	if err := C.BodyParser(&body); err != nil {
 		return C.Status(400).JSON(fiber.Map{
 			"message": err.Error(),
@@ -36,6 +37,27 @@ func CreateUser(C *fiber.Ctx) error {
 	if body.UserName == "" {
 		return C.Status(400).JSON(fiber.Map{
 			"message": "UserName required",
+		})
+	}
+
+	if err := initializer.DB.Where("user_name = ?", body.UserName).First(&userNameExist).Error; err != nil {
+		if err.Error() != "record not found" {
+			return C.Status(500).JSON(fiber.Map{
+				"message": "username Db error: " + err.Error(),
+			})
+		}
+	}
+	fmt.Println("userNameExist", userNameExist)
+	if userNameExist.UserName != "" {
+		return C.Status(400).JSON(fiber.Map{
+			"message": "This user name not allow choose new  one",
+		})
+	}
+
+	iSValidUserName := utils.ValidateUsername(body.UserName)
+	if !iSValidUserName {
+		return C.Status(400).JSON(fiber.Map{
+			"message": "This username is not valid",
 		})
 	}
 
@@ -161,15 +183,39 @@ func CreateUserProfile(C *fiber.Ctx) error {
 
 }
 
-// get login user profile
-func GetUserProfileById(C *fiber.Ctx) error {
-	var data *model.UserProfile
-	id := C.Params("userId")
+// delete user profile by admin
+func DeleteUserByAdmin(C *fiber.Ctx) error {
+	var data *model.UserModel
+	id := C.Params("id")
 
-	fmt.Println("is here errror", id)
-	if err := initializer.DB.Where("user_id = ?", id).First(&data).Error; err != nil {
+	if err := initializer.DB.Where("id = ?", id).Delete(&data).Error; err != nil {
 		return C.Status(500).JSON(fiber.Map{
-			"message": err.Error(),
+			"message": "User Profile: " + err.Error(),
+		})
+	}
+
+	return C.Status(200).JSON(fiber.Map{
+		"message": "Delete Successfully",
+		"data":    data,
+	})
+
+}
+
+// get login user profile
+func GetUserProfileByUserName(C *fiber.Ctx) error {
+	var data *model.UserProfile
+	var user *model.UserModel
+	userName := C.Params("userName")
+
+	if err := initializer.DB.Where("user_name = ?", userName).First(&user).Error; err != nil {
+		return C.Status(500).JSON(fiber.Map{
+			"message": "User: " + err.Error(),
+		})
+	}
+
+	if err := initializer.DB.Where("user_id = ?", user.ID).First(&data).Error; err != nil {
+		return C.Status(500).JSON(fiber.Map{
+			"message": "User Profile: " + err.Error(),
 		})
 	}
 
