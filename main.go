@@ -22,7 +22,7 @@ func main() {
 		log.Fatal("Error in load env: ", err)
 	}
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:8000, http://localhost:3000 ,http://localhost:3001 ,http://localhost:3002 , https://myportfoliobuilder.vercel.app/ , https://nine-portfolio.vercel.app/",
+		AllowOrigins: "http://localhost:8000, http://localhost:3000 ,http://localhost:3001 ,http://localhost:3002 , https://myportfolioadmin.vercel.app/ , https://nine-portfolio.vercel.app/",
 		AllowHeaders: "Origin, Content-Type, Accept , Token , Authorization",
 	}))
 	port := os.Getenv("PORT")
