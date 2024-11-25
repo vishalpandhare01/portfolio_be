@@ -22,6 +22,7 @@ func SetUpRoutes(app *fiber.App) {
 	app.Get("/userprofile/:userName", handler.GetUserProfileByUserName)
 	app.Get("/loginUser", middleware.AuthMiddleware, handler.GetLogInUserProfile)
 	app.Get("/userprofile/:userName", handler.GetUserProfileByUserName)
+	app.Delete("/userprofile", middleware.AuthMiddleware, handler.DeleteUserProfileById)
 
 	app.Post("/addContact/:id", handler.CreateContact)
 	app.Get("/getContacts/", middleware.AuthMiddleware, handler.GetUserContacts)
