@@ -165,8 +165,16 @@ func CreateUserProfile(C *fiber.Ctx) error {
 	fmt.Println("is here errror", id)
 
 	if checkExist.UserID == id {
-		return C.Status(400).JSON(fiber.Map{
-			"message": "profile already exist delete it and create new if any problem we cant afford edit feature",
+		body.ID = checkExist.ID
+		if err := initializer.DB.Save(&body).Error; err != nil {
+			return C.Status(500).JSON(fiber.Map{
+				"message": err.Error(),
+			})
+		}
+
+		return C.Status(200).JSON(fiber.Map{
+			"message": "Updated Successfuly",
+			"data":    body,
 		})
 	}
 
