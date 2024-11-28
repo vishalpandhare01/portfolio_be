@@ -27,7 +27,7 @@ func main() {
 	}))
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = ":8800"
+		port = "0.0.0.0:8800"
 	}
 	initializer.ConnectDb()
 	migration.SetUpMigration()

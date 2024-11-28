@@ -162,7 +162,7 @@ func CreateUserProfile(C *fiber.Ctx) error {
 	if err := initializer.DB.Where("user_id = ?", body.UserID).First(&checkExist).Error; err != nil {
 		fmt.Println("error in check exist", err.Error())
 	}
-	fmt.Println("is here errror", id)
+
 
 	if checkExist.UserID == id {
 		body.ID = checkExist.ID
