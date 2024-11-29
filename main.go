@@ -25,13 +25,14 @@ func main() {
 		AllowOrigins: "http://localhost:8000, http://localhost:3000 ,http://localhost:3001 ,http://localhost:3002 , https://myportfolioadmin.vercel.app/ , https://nine-portfolio.vercel.app/",
 		AllowHeaders: "Origin, Content-Type, Accept , Token , Authorization",
 	}))
+
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "0.0.0.0:8800"
+		port = "8800"
 	}
 	initializer.ConnectDb()
 	migration.SetUpMigration()
 	internal.SetUpRoutes(app)
 	fmt.Println("🚀 Server running on Port: ", port)
-	app.Listen(port)
+	app.Listen(":" + port)
 }
